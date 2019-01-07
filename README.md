@@ -1,4 +1,5 @@
 # SmartHoldem GateWay
+App in development process
 Gateway for exchanges, stores, services etc
 
 This application provides full interaction with SmartHoldem (STH) BlockChain with RPC-JSON
