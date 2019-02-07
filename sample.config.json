@@ -6,9 +6,11 @@
     "masterKey": ""
   },
   "WEB": {
+    "on": false,
     "alertTxUrl": ""
   },
   "BITSHARES": {
+    "on": false,
     "node": "",
     "user": "",
     "key": ""
