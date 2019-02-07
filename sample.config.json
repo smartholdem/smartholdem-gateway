@@ -5,7 +5,12 @@
     "masterAddress": "",
     "masterKey": ""
   },
-  "SERVICE": {
-    "alertTxCallbackUrl": ""
+  "WEB": {
+    "alertTxUrl": ""
+  },
+  "BITSHARES": {
+    "node": "",
+    "user": "",
+    "key": ""
   }
 }
