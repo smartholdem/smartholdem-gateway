@@ -15,6 +15,8 @@ RoadMap:
 - Payment statistics
 - Integration with others BlockChain platforms
 - BIP44 Addresses
+- BIP32
+- Invoices
 
 and more..
 
