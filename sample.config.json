@@ -3,16 +3,11 @@
     "appKey": "Your_Uniq_Any_Private_Password",
     "node": "127.0.0.1",
     "masterAddress": "",
-    "masterKey": ""
+    "masterKey": "",
+    "consolidateOnMaster": true
   },
   "WEB": {
-    "on": false,
-    "alertTxUrl": ""
-  },
-  "BITSHARES": {
-    "on": false,
-    "node": "",
-    "user": "",
-    "key": ""
+    "on": true,
+    "alertTxUrl": "http://localhost:7777/newtx"
   }
 }
