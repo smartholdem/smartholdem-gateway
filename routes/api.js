@@ -126,6 +126,20 @@ class SHWAY {
         });
     }
 
+    async checkSuccessTx(txId) {
+        try {
+            let value = await db.get('3x' + txId);
+            return ({
+                found: true,
+                value: value
+            })
+        } catch (err) {
+            return ({
+                found: false
+            })
+        }
+    }
+
     async getTxs(blockId) {
         await smartholdemApi.getTransactionsList({
             "blockId": blockId
