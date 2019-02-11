@@ -46,10 +46,10 @@ class SHWAY {
         });
     }
 
-    async getNewAddressBySalt(account) {
+    static async getNewAddressBySalt(account) {
         let PASS = appConfig.smartholdem.salt + account;
         let PUB_KEY = await sth.crypto.getKeys(PASS).publicKey;
-        let ADDR = await sth.crypto.getAddress(PUB_KEY);
+        let ADDR = await SHWAY.getAddress(PUB_KEY);
 
         await db.put('0x' + account, {
             "addr": ADDR
@@ -64,17 +64,17 @@ class SHWAY {
         return ({"addr": ADDR});
     }
 
-    async getAddress(account) {
+    static async getAddress(account) {
         try {
             let value = await db.get('0x' + account);
             return (value)
         } catch (err) {
             console.log('add new address');
-            return (this.getNewAddressBySalt(account))
+            return (SHWAY.getNewAddressBySalt(account))
         }
     }
 
-    async validate(address) {
+    static async validate(address) {
         return (sth.crypto.validateAddress(address))
     }
 
@@ -94,7 +94,7 @@ class SHWAY {
         });
     }
 
-    async searchAddress(recipient) {
+    static async searchAddress(recipient) {
         try {
             let value = await db.get('1x' + recipient);
             return ({
@@ -106,40 +106,15 @@ class SHWAY {
         }
     }
 
-    async sendCallbackTx(data) {
+    async dbGetKey(key) {
         return new Promise((resolve, reject) => {
-            request({
-                method: 'post',
-                json: true, // Use,If you are sending JSON data
-                url: appConfig.callbacks.alertTxUrl,
-                body: data,
-                headers: {
-                    "Content-Type": "application/json",
-                    "password": appConfig.callbacks.password
-                }
-            }, function (err, res, data) {
+            db.get(key, function (err, data) {
                 if (!err) {
-                    resolve(data);
-                } else {
-                    reject(err)
+                    resolve(true);
                 }
+                reject(false);
             });
         });
-    }
-
-    async checkSuccessTx(txId) {
-        try {
-            let value = await db.get('3x' + txId);
-            console.log('This Tx was processed earlier', txId);
-            return ({
-                found: true,
-                value: value
-            })
-        } catch (err) {
-            return ({
-                found: false
-            })
-        }
     }
 
     async getTxs(blockId) {
@@ -160,20 +135,22 @@ class SHWAY {
                                         timestamp: 1511269200 + response.transactions[i].timestamp
                                     };
 
-                                    this.checkSuccessTx(response.transactions[i].id)
-                                        .then(function(resultCheckTx){
-                                            console.log('resultCheckTx',resultCheckTx);
+                                    console.log('response.transactions[i].id', response.transactions[i].id);
+
+                                    checkSuccessTx(response.transactions[i].id)
+                                        .then(function (resultCheckTx) {
+                                            console.log('resultCheckTx', resultCheckTx);
                                             if (!resultCheckTx) {
-                                                console.log('found new tx',preparedTx);
+                                                console.log('found new tx', preparedTx);
                                                 db.put('2x' + response.transactions[i].id, preparedTx);
                                                 if (appConfig.callbacks.sendCallback) {
-                                                    this.sendCallbackTx(preparedTx)
+                                                    sendCallbackTx(preparedTx)
                                                         .then(function (callbackResult) {
                                                             console.log(callbackResult);
                                                         });
                                                 }
                                             }
-                                    });
+                                        });
 
                                 }
                             })
@@ -191,7 +168,7 @@ class SHWAY {
         }, (error, success, response) => {
             for (let i = 0; i < response.blocks.length; i++) {
                 if (response.blocks[i].numberOfTransactions > 0) {
-                    this.getTxs(response.blocks[i].id)
+                    this.getTxs(response.blocks[i].id);
                 }
             }
             workerBlock = workerBlock + response.blocks.length;
@@ -205,26 +182,42 @@ class SHWAY {
 const shWay = new SHWAY();
 shWay.init();
 
-const dbGetKey = (key) => {
+async function sendCallbackTx(data) {
     return new Promise((resolve, reject) => {
-        db.get(key, function (err, data) {
+        request({
+            method: 'post',
+            json: true, // Use,If you are sending JSON data
+            url: appConfig.callbacks.alertTxUrl,
+            body: data,
+            headers: {
+                "Content-Type": "application/json",
+                "password": appConfig.callbacks.password
+            }
+        }, function (err, res, data) {
             if (!err) {
                 resolve(data);
+            } else {
+                reject(err)
             }
-            reject(key);
         });
     });
-};
+}
+
+async function checkSuccessTx(txId) {
+    console.log('check', txId);
+    let checkTx = await shWay.dbGetKey('3x' + txId);
+    return ({found: checkTx});
+}
 
 /* GET home page. */
 router.get('/getaddress/:account', function (req, res, next) {
-    shWay.getAddress(req.params["account"]).then(function (data) {
+    SHWAY.getAddress(req.params["account"]).then(function (data) {
         res.json(data);
     });
 });
 
 router.get('/validate/:address', function (req, res, next) {
-    shWay.validate(req.params["address"]).then(function (data) {
+    SHWAY.validate(req.params["address"]).then(function (data) {
         res.json({"valid": data});
     });
 });
