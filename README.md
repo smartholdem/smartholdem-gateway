@@ -18,8 +18,6 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 - BIP32
 - Invoices
 
-and more..
-
 ## Requirements
 
 nodejs 8.x+
@@ -32,6 +30,10 @@ npm install
 ````
 
 ## Settings
+
+```shell
+mv sample.config.json config.json
+```
 
 ## Run
 
