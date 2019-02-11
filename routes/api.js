@@ -21,6 +21,7 @@ let workerBlock = 0;
 
 // main class
 class SHWAY {
+
     init() {
         smartholdemApi.setPreferredNode(appConfig.smartholdem.preferredNode); // default node
         smartholdemApi.init('main'); //main or dev
@@ -161,7 +162,9 @@ class SHWAY {
 
                                     this.checkSuccessTx(response.transactions[i].id)
                                         .then(function(resultCheckTx){
+                                            console.log('resultCheckTx',resultCheckTx);
                                             if (!resultCheckTx) {
+                                                console.log('found new tx',preparedTx);
                                                 db.put('2x' + response.transactions[i].id, preparedTx);
                                                 if (appConfig.callbacks.sendCallback) {
                                                     this.sendCallbackTx(preparedTx)
@@ -188,7 +191,6 @@ class SHWAY {
         }, (error, success, response) => {
             for (let i = 0; i < response.blocks.length; i++) {
                 if (response.blocks[i].numberOfTransactions > 0) {
-                    console.log(response.blocks[i]);
                     this.getTxs(response.blocks[i].id)
                 }
             }
@@ -213,7 +215,6 @@ const dbGetKey = (key) => {
         });
     });
 };
-
 
 /* GET home page. */
 router.get('/getaddress/:account', function (req, res, next) {
