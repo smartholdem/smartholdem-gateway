@@ -100,6 +100,7 @@ router.get('/validate/:address', function (req, res, next) {
     });
 });
 
+// debug only
 router.get('/dbget/:from/:to', function (req, res, next) {
     shWay.readDb(req.params["from"], req.params["to"]).then(function (data) {
         res.json(data);
