@@ -3,7 +3,8 @@
     "port": 3000,
     "localhostOnly": true,
     "appKey": "Your_Uniq_Any_Private_Random_Key",
-    "debug": false
+    "debug": false,
+    "backups": true
   },
   "smartholdem": {
     "preferredNode": "127.0.0.1",
@@ -11,9 +12,12 @@
     "masterKey": "",
     "salt": "",
     "consolidateOnMasterAddress": true,
-    "confirmations": 10
+    "confirmations": 10,
+    "blocks": 20
   },
   "callbacks": {
-    "alertTxUrl": "http://localhost:7777/newtx"
+    "sendCallback": false,
+    "password": "1234567890",
+    "alertTxUrl": "http://yourWebSite.com/newtx"
   }
 }
