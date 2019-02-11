@@ -107,11 +107,14 @@ class SHWAY {
 
     async searchAddress(recipient) {
         try {
-            return (await db.get('1x' + recipient));
+            let value = await db.get('1x' + recipient);
+            return ({
+                found: true,
+                account: value.account
+            });
         } catch (err) {
             return ({found: false});
         }
-
     }
 
     async getTxs(blockId) {
@@ -121,9 +124,17 @@ class SHWAY {
             if (response.success) {
                 for (let i = 0; i < response.transactions.length; i++) {
                     if (response.transactions[i].type === 0) {
-                        this.searchAddress(response.transactions[i].recipientId).then(function(data){
-
-                        })
+                        this.searchAddress(response.transactions[i].recipientId)
+                            .then(function (dataSearch) {
+                                if (dataSearch.found) {
+                                    db.put('2x' + response.transactions[i].id, {
+                                        id: response.transactions[i].id,
+                                        vendorField: response.transactions[i].vendorField,
+                                        account: dataSearch.account,
+                                        amount: response.transactions[i].amount // 10 ** 8
+                                    });
+                                }
+                            })
                     }
                 }
             }
