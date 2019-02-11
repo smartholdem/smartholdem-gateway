@@ -1,22 +1,41 @@
 var express = require('express');
 var router = express.Router();
+const fs = require("fs");
 const level = require('level');
 const smartholdemApi = require("sthjs-wrapper");
 const jsonFile = require('jsonfile');
 const sth = require("sthjs");
 const bip39 = require("bip39");
-
+const scheduler = require("node-schedule");
 const appConfig = jsonFile.readFileSync("./config.json");
 const db = level('.db', {valueEncoding: 'json'});
 
 // 0x - users
 // 1x - address
+// 2x - txInWait
+// 3x - txInSuccess
+// 4x - txOut
+
+let workerBlock = 0;
 
 // main class
 class SHWAY {
-    async init() {
+    init() {
         smartholdemApi.setPreferredNode(appConfig.smartholdem.preferredNode); // default node
         smartholdemApi.init('main'); //main or dev
+
+        if (!fs.existsSync('./cache/blocks.json')) {
+            smartholdemApi.getBlockchainHeight((error, success, response) => {
+                console.log(response);
+                jsonFile.writeFileSync('./cache/blocks.json', {
+                    "workerBlock": response.height - appConfig.smartholdem.confirmations
+                })
+            });
+        } else {
+            workerBlock = jsonFile.readFileSync('./cache/blocks.json').workerBlock;
+        }
+        console.log('GateWay Init');
+        console.log('Started Block:', workerBlock)
     }
 
     async getNewAddressBySalt(account) {
@@ -67,13 +86,56 @@ class SHWAY {
         });
     }
 
+    async getBlocks(offset) {
+        await smartholdemApi.getBlocks({
+            "limit": appConfig.smartholdem.blocks,
+            "offset": offset,
+            "orderBy": "height:asc"
+        }, (error, success, response) => {
+            // console.log(response.blocks);
+            for (let i = 0; i < response.blocks.length; i++) {
+                if (response.blocks[i].numberOfTransactions > 0) {
+                    console.log(response.blocks[i]);
+                }
+            }
+
+            workerBlock = workerBlock + response.blocks.length;
+            jsonReader.writeFile('./cache/blocks.json', {"workerBlock": workerBlock});
+            console.log(workerBlock, response.blocks.length);
+        });
+    }
+
+    async searchAddress(recipient) {
+        try {
+            return (await db.get('1x' + recipient));
+        } catch (err) {
+            return ({found: false});
+        }
+
+    }
+
+    async getTxs(blockId) {
+        await smartholdemApi.getTransactionsList({
+            "blockId": blockId
+        }, (error, success, response) => {
+            if (response.success) {
+                for (let i = 0; i < response.transactions.length; i++) {
+                    if (response.transactions[i].type === 0) {
+                        this.searchAddress(response.transactions[i].recipientId).then(function(data){
+
+                        })
+                    }
+                }
+            }
+
+        });
+    }
+
 }
 
 
 const shWay = new SHWAY();
-shWay.init().then(function () {
-    console.log('GateWay Init');
-});
+shWay.init();
 
 const dbGetKey = (key) => {
     return new Promise((resolve, reject) => {
