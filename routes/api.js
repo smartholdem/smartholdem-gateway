@@ -46,7 +46,7 @@ class SHWAY {
         });
     }
 
-    static async getNewAddressBySalt(account) {
+    async getNewAddressBySalt(account) {
         let PASS = appConfig.smartholdem.salt + account;
         let PUB_KEY = await sth.crypto.getKeys(PASS).publicKey;
         let ADDR = await SHWAY.getAddress(PUB_KEY);
@@ -64,7 +64,7 @@ class SHWAY {
         return ({"addr": ADDR});
     }
 
-    static async getAddress(account) {
+    async getAddress(account) {
         try {
             let value = await db.get('0x' + account);
             return (value)
@@ -74,11 +74,11 @@ class SHWAY {
         }
     }
 
-    static async validate(address) {
+    async validate(address) {
         return (sth.crypto.validateAddress(address))
     }
 
-    async readDb(from, to) {
+    readDb(from, to) {
         return new Promise((resolve, reject) => {
             let list = {};
             db.createReadStream({gte: from + 'x', lt: to + 'x', "limit": 10000})
@@ -94,7 +94,7 @@ class SHWAY {
         });
     }
 
-    static async searchAddress(recipient) {
+    async searchAddress(recipient) {
         try {
             let value = await db.get('1x' + recipient);
             return ({
@@ -137,21 +137,19 @@ class SHWAY {
 
                                     console.log('response.transactions[i].id', response.transactions[i].id);
 
-                                    checkSuccessTx(response.transactions[i].id)
-                                        .then(function (resultCheckTx) {
-                                            console.log('resultCheckTx', resultCheckTx);
-                                            if (!resultCheckTx) {
-                                                console.log('found new tx', preparedTx);
-                                                db.put('2x' + response.transactions[i].id, preparedTx);
-                                                if (appConfig.callbacks.sendCallback) {
-                                                    sendCallbackTx(preparedTx)
-                                                        .then(function (callbackResult) {
-                                                            console.log(callbackResult);
-                                                        });
-                                                }
+                                    db.get('3x' + response.transactions[i].id, function (err, value) {
+                                        if (err) {
+                                            console.log('resultCheckTx', err);
+                                            console.log('found new tx', preparedTx);
+                                            db.put('2x' + response.transactions[i].id, preparedTx);
+                                            if (appConfig.callbacks.sendCallback) {
+                                                sendCallbackTx(preparedTx)
+                                                    .then(function (callbackResult) {
+                                                        console.log(callbackResult);
+                                                    });
                                             }
-                                        });
-
+                                        }
+                                    });
                                 }
                             })
                     }
@@ -166,11 +164,13 @@ class SHWAY {
             "offset": offset,
             "orderBy": "height:asc"
         }, (error, success, response) => {
+
             for (let i = 0; i < response.blocks.length; i++) {
                 if (response.blocks[i].numberOfTransactions > 0) {
                     this.getTxs(response.blocks[i].id);
                 }
             }
+
             workerBlock = workerBlock + response.blocks.length;
             jsonFile.writeFile('./cache/blocks.json', {"workerBlock": workerBlock});
             console.log(workerBlock, response.blocks.length);
@@ -180,6 +180,7 @@ class SHWAY {
 }
 
 const shWay = new SHWAY();
+
 shWay.init();
 
 async function sendCallbackTx(data) {
@@ -201,12 +202,6 @@ async function sendCallbackTx(data) {
             }
         });
     });
-}
-
-async function checkSuccessTx(txId) {
-    console.log('check', txId);
-    let checkTx = await shWay.dbGetKey('3x' + txId);
-    return ({found: checkTx});
 }
 
 /* GET home page. */
