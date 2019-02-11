@@ -1,13 +1,17 @@
 {
-  "SMARTHOLDEM": {
-    "appKey": "Your_Uniq_Any_Private_Password",
-    "node": "127.0.0.1",
+  "app": {
+    "port": 3000,
+    "localhostOnly": true,
+    "appKey": "Your_Uniq_Any_Private_Key",
+    "debug": false
+  },
+  "smartholdem": {
+    "preferredNode": "127.0.0.1",
     "masterAddress": "",
     "masterKey": "",
-    "consolidateOnMaster": true
+    "consolidateOnMasterAddress": true
   },
-  "WEB": {
-    "on": true,
+  "callbacks": {
     "alertTxUrl": "http://localhost:7777/newtx"
   }
 }
