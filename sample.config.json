@@ -9,6 +9,7 @@
     "preferredNode": "127.0.0.1",
     "masterAddress": "",
     "masterKey": "",
+    "salt": "",
     "consolidateOnMasterAddress": true,
     "confirmations": 10
   },
