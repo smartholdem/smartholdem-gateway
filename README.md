@@ -26,6 +26,7 @@ nodejs 8.x+
 
 ```shell
 cd smartholdem-gateway
+npm install -g npm forever grunt-cli
 npm install
 ````
 
@@ -36,5 +37,9 @@ mv sample.config.json config.json
 ```
 
 ## Run
+
+```shell
+forever start ./bin/www
+```
 
 ## API
