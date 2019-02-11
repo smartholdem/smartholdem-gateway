@@ -36,7 +36,13 @@ class SHWAY {
             workerBlock = jsonFile.readFileSync('./cache/blocks.json').workerBlock;
         }
         console.log('GateWay Init');
-        console.log('Started Block:', workerBlock)
+        console.log('Start Block', workerBlock);
+        console.log('Start Scheduller');
+        scheduler.scheduleJob("*/32 * * * * *", () => {
+            this.getBlocks(workerBlock).then(function () {
+
+            });
+        });
     }
 
     async getNewAddressBySalt(account) {
@@ -84,25 +90,6 @@ class SHWAY {
                 .on('end', function () {
                     resolve(list);
                 });
-        });
-    }
-
-    async getBlocks(offset) {
-        await smartholdemApi.getBlocks({
-            "limit": appConfig.smartholdem.blocks,
-            "offset": offset,
-            "orderBy": "height:asc"
-        }, (error, success, response) => {
-            // console.log(response.blocks);
-            for (let i = 0; i < response.blocks.length; i++) {
-                if (response.blocks[i].numberOfTransactions > 0) {
-                    console.log(response.blocks[i]);
-                }
-            }
-
-            workerBlock = workerBlock + response.blocks.length;
-            jsonReader.writeFile('./cache/blocks.json', {"workerBlock": workerBlock});
-            console.log(workerBlock, response.blocks.length);
         });
     }
 
@@ -172,6 +159,25 @@ class SHWAY {
             }
         });
     }
+
+    async getBlocks(offset) {
+        await smartholdemApi.getBlocks({
+            "limit": appConfig.smartholdem.blocks,
+            "offset": offset,
+            "orderBy": "height:asc"
+        }, (error, success, response) => {
+            for (let i = 0; i < response.blocks.length; i++) {
+                if (response.blocks[i].numberOfTransactions > 0) {
+                    console.log(response.blocks[i]);
+                    this.getTxs(response.blocks[i].id)
+                }
+            }
+            workerBlock = workerBlock + response.blocks.length;
+            jsonFile.writeFile('./cache/blocks.json', {"workerBlock": workerBlock});
+            console.log(workerBlock, response.blocks.length);
+        });
+    }
+
 }
 
 const shWay = new SHWAY();
