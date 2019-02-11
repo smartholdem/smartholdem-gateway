@@ -9,7 +9,8 @@
     "preferredNode": "127.0.0.1",
     "masterAddress": "",
     "masterKey": "",
-    "consolidateOnMasterAddress": true
+    "consolidateOnMasterAddress": true,
+    "confirmations": 10
   },
   "callbacks": {
     "alertTxUrl": "http://localhost:7777/newtx"
