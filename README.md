@@ -43,3 +43,17 @@ forever start ./bin/www
 ```
 
 ## API
+
+### Get Address
+
+```shell
+GET http://localhost:3000/api/getaddress/username
+```
+
+return json
+
+```json
+{
+  "addr": "SWE5yaoYZbKKn6n6SXBur3gceetUJTR1yk"
+}
+```
