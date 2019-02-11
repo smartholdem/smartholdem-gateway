@@ -129,6 +129,7 @@ class SHWAY {
     async checkSuccessTx(txId) {
         try {
             let value = await db.get('3x' + txId);
+            console.log('This Tx was processed earlier', txId);
             return ({
                 found: true,
                 value: value
@@ -158,14 +159,19 @@ class SHWAY {
                                         timestamp: 1511269200 + response.transactions[i].timestamp
                                     };
 
-                                    db.put('2x' + response.transactions[i].id, preparedTx);
+                                    this.checkSuccessTx(response.transactions[i].id)
+                                        .then(function(resultCheckTx){
+                                            if (!resultCheckTx) {
+                                                db.put('2x' + response.transactions[i].id, preparedTx);
+                                                if (appConfig.callbacks.sendCallback) {
+                                                    this.sendCallbackTx(preparedTx)
+                                                        .then(function (callbackResult) {
+                                                            console.log(callbackResult);
+                                                        });
+                                                }
+                                            }
+                                    });
 
-                                    if (appConfig.callbacks.sendCallback) {
-                                        this.sendCallbackTx(preparedTx)
-                                            .then(function (callbackResult) {
-                                                console.log(callbackResult);
-                                            });
-                                    }
                                 }
                             })
                     }
