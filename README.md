@@ -38,8 +38,16 @@ mv sample.config.json config.json
 
 ## Run
 
+As daemon background process:
+
 ```shell
-forever start ./bin/www
+npm daemon
+```
+
+As debug console:
+
+```shell
+npm start
 ```
 
 ## API

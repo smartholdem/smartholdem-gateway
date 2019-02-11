@@ -37,7 +37,7 @@ class SHWAY {
         }
         console.log('GateWay Init');
         console.log('Start Block', workerBlock);
-        console.log('Start Scheduller');
+        console.log('Start Scheduler');
         scheduler.scheduleJob("*/32 * * * * *", () => {
             this.getBlocks(workerBlock).then(function () {
 
