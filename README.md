@@ -46,14 +46,30 @@ forever start ./bin/www
 
 ### Get Address
 
+A new address will be created if not found in the database.
+
 ```shell
 GET http://localhost:3000/api/getaddress/username
 ```
 
-return json
+return address json
 
 ```json
 {
   "addr": "SWE5yaoYZbKKn6n6SXBur3gceetUJTR1yk"
+}
+```
+
+### Validate Address
+
+```shell
+GET http://localhost:3000/api/validate/SWE5yaoYZbKKn6n6SXBur3gceetUJTR1yk
+```
+
+return true/false json
+
+```json
+{
+  "valid": true
 }
 ```
