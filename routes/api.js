@@ -7,6 +7,7 @@ const jsonFile = require('jsonfile');
 const sth = require("sthjs");
 const bip39 = require("bip39");
 const scheduler = require("node-schedule");
+const request = require("request");
 const appConfig = jsonFile.readFileSync("./config.json");
 const db = level('.db', {valueEncoding: 'json'});
 
@@ -117,6 +118,27 @@ class SHWAY {
         }
     }
 
+    async sendCallbackTx(data) {
+        return new Promise((resolve, reject) => {
+            request({
+                method: 'post',
+                json: true, // Use,If you are sending JSON data
+                url: appConfig.callbacks.alertTxUrl,
+                body: data,
+                headers: {
+                    "Content-Type": "application/json",
+                    "password": appConfig.callbacks.password
+                }
+            }, function (err, res, data) {
+                if (!err) {
+                    resolve(data);
+                } else {
+                    reject(err)
+                }
+            });
+        });
+    }
+
     async getTxs(blockId) {
         await smartholdemApi.getTransactionsList({
             "blockId": blockId
@@ -127,23 +149,30 @@ class SHWAY {
                         this.searchAddress(response.transactions[i].recipientId)
                             .then(function (dataSearch) {
                                 if (dataSearch.found) {
-                                    db.put('2x' + response.transactions[i].id, {
+                                    let preparedTx = {
                                         id: response.transactions[i].id,
-                                        vendorField: response.transactions[i].vendorField,
+                                        comment: response.transactions[i].vendorField,
                                         account: dataSearch.account,
-                                        amount: response.transactions[i].amount // 10 ** 8
-                                    });
+                                        amount: response.transactions[i].amount, // 10 ** 8
+                                        timestamp: 1511269200 + response.transactions[i].timestamp
+                                    };
+
+                                    db.put('2x' + response.transactions[i].id, preparedTx);
+
+                                    if (appConfig.callbacks.sendCallback) {
+                                        this.sendCallbackTx(preparedTx)
+                                            .then(function (callbackResult) {
+                                                console.log(callbackResult);
+                                            });
+                                    }
                                 }
                             })
                     }
                 }
             }
-
         });
     }
-
 }
-
 
 const shWay = new SHWAY();
 shWay.init();
