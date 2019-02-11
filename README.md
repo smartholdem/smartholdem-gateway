@@ -25,10 +25,14 @@ and more..
 nodejs 8.x+
 
 ## Install
+
 ```shell
 cd smartholdem-gateway
 npm install
 ````
+
 ## Settings
+
+## Run
 
 ## API
