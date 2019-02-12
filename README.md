@@ -6,7 +6,7 @@ Gateway for exchanges, stores, services etc
 
 This application provides full interaction with SmartHoldem (STH) BlockChain with RPC-JSON
 
-### RoadMap:
+### Features:
 
 - Receipt of payments (+)
 - Validate Addresses (+)
@@ -19,6 +19,7 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 - BIP32
 - Invoices
 - Documentation (~)
+- Logs (~)
 
 ## Requirements
 
