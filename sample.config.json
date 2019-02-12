@@ -1,7 +1,7 @@
 {
   "app": {
     "port": 3000,
-    "localhostOnly": true,
+    "localhostOnly": false,
     "appKey": "Your_Uniq_Any_Private_Random_Key",
     "debug": false,
     "backups": true
