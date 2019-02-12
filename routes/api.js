@@ -19,37 +19,36 @@ const db = level('.db', {valueEncoding: 'json'});
 
 let workerBlock = 0;
 
+function init() {
+    smartholdemApi.setPreferredNode(appConfig.smartholdem.preferredNode); // default node
+    smartholdemApi.init('main'); //main or dev
+
+    if (!fs.existsSync('./cache/blocks.json')) {
+        smartholdemApi.getBlockchainHeight((error, success, response) => {
+            console.log(response);
+            jsonFile.writeFileSync('./cache/blocks.json', {
+                "workerBlock": response.height - appConfig.smartholdem.confirmations
+            })
+        });
+    } else {
+        workerBlock = jsonFile.readFileSync('./cache/blocks.json').workerBlock;
+    }
+    console.log('GateWay Init');
+    console.log('Start Block', workerBlock);
+    console.log('Start Scheduler');
+    scheduler.scheduleJob("*/40 * * * * *", () => {
+        shWay.getBlocks(workerBlock).then(function () {
+        });
+    });
+}
+
 // main class
 class SHWAY {
-
-    init() {
-        smartholdemApi.setPreferredNode(appConfig.smartholdem.preferredNode); // default node
-        smartholdemApi.init('main'); //main or dev
-
-        if (!fs.existsSync('./cache/blocks.json')) {
-            smartholdemApi.getBlockchainHeight((error, success, response) => {
-                console.log(response);
-                jsonFile.writeFileSync('./cache/blocks.json', {
-                    "workerBlock": response.height - appConfig.smartholdem.confirmations
-                })
-            });
-        } else {
-            workerBlock = jsonFile.readFileSync('./cache/blocks.json').workerBlock;
-        }
-        console.log('GateWay Init');
-        console.log('Start Block', workerBlock);
-        console.log('Start Scheduler');
-        scheduler.scheduleJob("*/32 * * * * *", () => {
-            this.getBlocks(workerBlock).then(function () {
-
-            });
-        });
-    }
 
     async getNewAddressBySalt(account) {
         let PASS = appConfig.smartholdem.salt + account;
         let PUB_KEY = await sth.crypto.getKeys(PASS).publicKey;
-        let ADDR = await SHWAY.getAddress(PUB_KEY);
+        let ADDR = await sth.crypto.getAddress(PUB_KEY);
 
         await db.put('0x' + account, {
             "addr": ADDR
@@ -65,12 +64,14 @@ class SHWAY {
     }
 
     async getAddress(account) {
+        console.log(account);
         try {
             let value = await db.get('0x' + account);
-            return (value)
+            return (value);
         } catch (err) {
             console.log('add new address');
-            return (SHWAY.getNewAddressBySalt(account))
+            let newAddress = await this.getNewAddressBySalt(account);
+            return (newAddress);
         }
     }
 
@@ -78,15 +79,12 @@ class SHWAY {
         return (sth.crypto.validateAddress(address))
     }
 
-    readDb(from, to) {
+    async readDb(from, to) {
         return new Promise((resolve, reject) => {
             let list = {};
             db.createReadStream({gte: from + 'x', lt: to + 'x', "limit": 10000})
                 .on('data', function (data) {
                     list[data.key] = data.value;
-                })
-                .on('error', function (err) {
-                    reject(err);
                 })
                 .on('end', function () {
                     resolve(list);
@@ -106,29 +104,19 @@ class SHWAY {
         }
     }
 
-    async dbGetKey(key) {
-        return new Promise((resolve, reject) => {
-            db.get(key, function (err, data) {
-                if (!err) {
-                    resolve(true);
-                }
-                reject(false);
-            });
-        });
-    }
-
     async getTxs(blockId) {
         await smartholdemApi.getTransactionsList({
             "blockId": blockId
         }, (error, success, response) => {
             if (response.success) {
                 for (let i = 0; i < response.transactions.length; i++) {
-                    if (response.transactions[i].type === 0) {
+                    if (response.transactions[i].type === 0 && response.transactions[i].amount >= (appConfig.smartholdem.minAmount * 10 ** 8)) {
                         this.searchAddress(response.transactions[i].recipientId)
                             .then(function (dataSearch) {
                                 if (dataSearch.found) {
                                     let preparedTx = {
                                         id: response.transactions[i].id,
+                                        recipientId: response.transactions[i].recipientId,
                                         comment: response.transactions[i].vendorField,
                                         account: dataSearch.account,
                                         amount: response.transactions[i].amount, // 10 ** 8
@@ -139,7 +127,6 @@ class SHWAY {
 
                                     db.get('3x' + response.transactions[i].id, function (err, value) {
                                         if (err) {
-                                            console.log('resultCheckTx', err);
                                             console.log('found new tx', preparedTx);
                                             db.put('2x' + response.transactions[i].id, preparedTx);
                                             if (appConfig.callbacks.sendCallback) {
@@ -179,10 +166,6 @@ class SHWAY {
 
 }
 
-const shWay = new SHWAY();
-
-shWay.init();
-
 async function sendCallbackTx(data) {
     return new Promise((resolve, reject) => {
         request({
@@ -204,15 +187,19 @@ async function sendCallbackTx(data) {
     });
 }
 
+const shWay = new SHWAY();
+init();
+
+
 /* GET home page. */
 router.get('/getaddress/:account', function (req, res, next) {
-    SHWAY.getAddress(req.params["account"]).then(function (data) {
+    shWay.getAddress(req.params["account"]).then(function (data) {
         res.json(data);
     });
 });
 
 router.get('/validate/:address', function (req, res, next) {
-    SHWAY.validate(req.params["address"]).then(function (data) {
+    shWay.validate(req.params["address"]).then(function (data) {
         res.json({"valid": data});
     });
 });
@@ -222,6 +209,16 @@ router.get('/dbget/:from/:to', function (req, res, next) {
     shWay.readDb(req.params["from"], req.params["to"]).then(function (data) {
         res.json(data);
     });
+});
+
+router.post('/dbput', function (req, res, next) {
+    if (appConfig.app.appKey === req.headers['appkey']) {
+        db.del('2x' + req.body.value.id);
+        db.put(req.body.key, req.body.value);
+        res.json(true);
+    } else {
+        res.json(null);
+    }
 });
 
 module.exports = router;
