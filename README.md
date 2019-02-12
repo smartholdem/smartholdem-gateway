@@ -8,13 +8,14 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 
 ### RoadMap:
 
-- Receipt of payments
-- Sending payments
-- Generate user addresses
-- Alert service about new payment
-- Payment statistics
-- Integration with others BlockChain platforms
-- BIP44 Addresses
+- Receipt of payments (+)
+- Validate Addresses (+)
+- Sending payments (+)
+- Generate user addresses (+)
+- Alert service about new payment (+)
+- Payment statistics (~)
+- Integration with others BlockChain platforms (~)
+- BIP44 Addresses (~)
 - BIP32
 - Invoices
 
