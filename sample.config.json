@@ -13,7 +13,8 @@
     "salt": "",
     "consolidateOnMasterAddress": true,
     "confirmations": 10,
-    "blocks": 20
+    "blocks": 6,
+    "minAmount": 10
   },
   "callbacks": {
     "sendCallback": false,
