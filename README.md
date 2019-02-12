@@ -18,6 +18,7 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 - BIP44 Addresses (~)
 - BIP32
 - Invoices
+- Documentation (~)
 
 ## Requirements
 
