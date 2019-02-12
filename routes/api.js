@@ -211,9 +211,20 @@ router.get('/dbget/:from/:to', function (req, res, next) {
     });
 });
 
-router.post('/dbput', function (req, res, next) {
+/** STH tx in gateway **/
+router.post('/txinsuccess', function (req, res, next) {
     if (appConfig.app.appKey === req.headers['appkey']) {
         db.del('2x' + req.body.value.id);
+        db.put(req.body.key, req.body.value);
+        res.json(true);
+    } else {
+        res.json(null);
+    }
+});
+
+/** Put Arbitrary data **/
+router.post('/dbput', function (req, res, next) {
+    if (appConfig.app.appKey === req.headers['appkey']) {
         db.put(req.body.key, req.body.value);
         res.json(true);
     } else {
