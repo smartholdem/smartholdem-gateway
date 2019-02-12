@@ -3,6 +3,14 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+const jsonFile = require('jsonfile');
+var appConfig = jsonFile.readFileSync('./config.json'); // конфиг
+
+process.env.PORT = appConfig.app.port;
+process.env.address = '0.0.0.0';
+if (appConfig.app.localhostOnly) {
+  process.env.address = 'localhost';
+}
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
