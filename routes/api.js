@@ -35,7 +35,7 @@ function init() {
         });
     } else {
         workerBlock = jsonFile.readFileSync('./cache/blocks.json').workerBlock;
-        util.log("WorkerHeight|" + moment().toISOString() + "|" + workerBlock + "\r\n");
+        util.log("WorkerHeight|" + workerBlock + "|" + moment().toISOString() + "\r\n");
     }
     console.log('GateWay Init');
     console.log('Start Block', workerBlock);
@@ -129,7 +129,7 @@ class SHWAY {
 
                                     db.get('3x' + response.transactions[i].id, function (err, value) {
                                         if (err) {
-                                            util.log("newtxin|" + moment().toISOString() + "|" + (preparedTx.amount / 100000000) + "STH|" + preparedTx.account + "|" + preparedTx.recipientId + "\r\n");
+                                            util.log("newtxin|" + (preparedTx.amount / 100000000) + "STH|" + preparedTx.account + "|" + preparedTx.recipientId + "|" + moment().toISOString() + "\r\n");
                                             db.put('2x' + response.transactions[i].id, preparedTx);
                                             if (appConfig.callbacks.sendCallback) {
                                                 sendCallbackTx(preparedTx)
