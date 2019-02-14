@@ -19,7 +19,7 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 - BIP32
 - Invoices
 - Documentation (~)
-- Logs (~)
+- Logs sth.log (+)
 
 ## Requirements
 
@@ -44,7 +44,13 @@ mv sample.config.json config.json
 As daemon background process:
 
 ```shell
-npm daemon
+sh restart.sh
+```
+
+## Stop process
+
+```shell
+sh stop.sh
 ```
 
 As debug console:
