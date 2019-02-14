@@ -160,7 +160,7 @@ class SHWAY {
 
             workerBlock = workerBlock + response.blocks.length;
             jsonFile.writeFile('./cache/blocks.json', {"workerBlock": workerBlock});
-            console.log(workerBlock, response.blocks.length);
+            console.log(offset + "/" + workerBlock + "/" + response.blocks.length);
         });
     }
 
