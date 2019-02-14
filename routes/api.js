@@ -8,6 +8,8 @@ const sth = require("sthjs");
 const bip39 = require("bip39");
 const scheduler = require("node-schedule");
 const request = require("request");
+const moment = require("moment");
+const util = require("../modules/util");
 const appConfig = jsonFile.readFileSync("./config.json");
 const db = level('.db', {valueEncoding: 'json'});
 
@@ -26,12 +28,14 @@ function init() {
     if (!fs.existsSync('./cache/blocks.json')) {
         smartholdemApi.getBlockchainHeight((error, success, response) => {
             console.log(response);
+            util.log("BlockchainHeight|" + moment().toISOString() + "|" + response.height + "\r\n");
             jsonFile.writeFileSync('./cache/blocks.json', {
                 "workerBlock": response.height - appConfig.smartholdem.confirmations
             })
         });
     } else {
         workerBlock = jsonFile.readFileSync('./cache/blocks.json').workerBlock;
+        util.log("WorkerHeight|" + moment().toISOString() + "|" + workerBlock + "\r\n");
     }
     console.log('GateWay Init');
     console.log('Start Block', workerBlock);
@@ -123,11 +127,9 @@ class SHWAY {
                                         timestamp: 1511269200 + response.transactions[i].timestamp
                                     };
 
-                                    console.log('response.transactions[i].id', response.transactions[i].id);
-
                                     db.get('3x' + response.transactions[i].id, function (err, value) {
                                         if (err) {
-                                            console.log('found new tx', preparedTx);
+                                            util.log("newtxin|" + moment().toISOString() + "|" + (preparedTx.amount / 100000000) + "STH|" + preparedTx.account + "|" + preparedTx.recipientId + "\r\n");
                                             db.put('2x' + response.transactions[i].id, preparedTx);
                                             if (appConfig.callbacks.sendCallback) {
                                                 sendCallbackTx(preparedTx)
@@ -160,7 +162,7 @@ class SHWAY {
 
             workerBlock = workerBlock + response.blocks.length;
             jsonFile.writeFile('./cache/blocks.json', {"workerBlock": workerBlock});
-            console.log(offset + "/" + workerBlock + "/" + response.blocks.length);
+            // console.log(offset + "/" + workerBlock + "/" + response.blocks.length);
         });
     }
 
