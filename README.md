@@ -157,7 +157,7 @@ POST http://localhost:3000/api/sendtoaddress
 
 for more examples see tests/test-sendtoaddress.js
 
-```json
+```javascript
 {
     success: true,
     transactionIds:
@@ -178,7 +178,7 @@ POST http://localhost:3000/api/sendfrom
 
 return json result
 
-```json
+```javascript
 {
     success: true,
     transactionIds:
