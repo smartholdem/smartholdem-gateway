@@ -196,7 +196,7 @@ class SHWAY {
     }
 
     async sendtoaddress(recipient, amount, comment = null) {
-        return(await this.sendfrom(appConfig.smartholdem.masterKey, recipient, amount, comment));
+        return (await this.sendfrom(appConfig.smartholdem.masterKey, recipient, amount, comment));
     }
 
     async sendfrom(senderPassphrase, recipient, amount, comment = null) {
@@ -210,12 +210,25 @@ class SHWAY {
         return new Promise((resolve, reject) => {
             smartholdemApi.sendTransactions([transaction], (error, success, responseSend) => {
                 if (responseSend.success === true) {
+                    let txOutData = {
+                        txId: responseSend.transactionIds[0],
+                        amount: amount,
+                        recipient: recipient,
+                        timestamp: Math.floor(Date.now() / 1000)
+                    };
+
+                    this.dbput('4x' + txOutData.txId, txOutData);
+
                     resolve(responseSend);
                 } else {
                     reject({"err": error});
                 }
             });
         });
+    }
+
+    async dbput(key, value) {
+        return (await db.put(key, value));
     }
 
 }
