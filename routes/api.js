@@ -43,7 +43,9 @@ function init() {
     console.log('Start Block', workerBlock);
     console.log('Start Scheduler');
     scheduler.scheduleJob("*/40 * * * * *", () => {
-        shWay.getBlocks(workerBlock);
+        if (!appConfig.app.debug) {
+            shWay.getBlocks(workerBlock);
+        }
     });
 }
 
@@ -193,6 +195,26 @@ class SHWAY {
         return (NewAddress);
     }
 
+    async sendtoaddress(address, amount, comment = null) {
+        let transaction = smartholdemApi.createTransaction(
+            appConfig.smartholdem.masterKey,
+            address,
+            amount * Math.pow(10, 8),
+            {"vendorField": comment}
+        );
+
+        return new Promise((resolve, reject) => {
+            smartholdemApi.sendTransactions([transaction], (error, success, responseSend) => {
+                if (responseSend.success === true) {
+                    resolve (responseSend);
+                } else {
+                    reject ({"err": error});
+                }
+            });
+        });
+
+    }
+
 }
 
 async function sendCallbackTx(data) {
@@ -293,5 +315,21 @@ router.post('/db/backup', function (req, res, next) {
         res.json(null);
     }
 });
+
+// Send STH from Master-Address
+router.post('/sendtoaddress', function (req, res, next) {
+    if (appConfig.app.appKey === req.headers['appkey']) {
+        let comment = null;
+        if (req.body.comment) {
+            comment = req.body.comment;
+        }
+        shWay.sendtoaddress(req.body.recipient, req.body.amount, comment).then(function (data) {
+            res.json(data);
+        });
+    } else {
+        res.json(null);
+    }
+});
+
 
 module.exports = router;
