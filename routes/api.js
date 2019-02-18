@@ -231,6 +231,10 @@ class SHWAY {
         return (await db.put(key, value));
     }
 
+    async reportsTxsOut() {
+        return (await this.readDb(4, 5));
+    }
+
 }
 
 /** tx alert **/
@@ -362,6 +366,12 @@ router.post('/sendfrom', function (req, res, next) {
     } else {
         res.json(null);
     }
+});
+
+router.get('/reports/txsout', function (req, res, next) {
+    shWay.reportsTxsOut().then(function (data) {
+        res.json(data);
+    });
 });
 
 module.exports = router;
