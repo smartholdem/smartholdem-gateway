@@ -114,7 +114,7 @@ return address json
 GET http://localhost:3000/api/validate/SWE5yaoYZbKKn6n6SXBur3gceetUJTR1yk
 ```
 
-### Gen New STH Address BIP39
+### Get New STH Address BIP39
 
 BIP39 Addresses are not saved to the database.
 
@@ -131,3 +131,15 @@ return json
   "pubkey": "02c61c9c01ca0852690c793989b99c084b82a6287ece6045c1b64ee4a7d4daac0d"
 }
 ```
+
+### Backup GateWay Database
+
+```shell
+POST http://localhost:3000/api/db/backup
+-H "accept: application/json"
+-H "appkey: YourAppKey"
+```
+
+Backup saved to /backup/backupjson.log.gz
+
+form more examples see tests/test-backup.js
