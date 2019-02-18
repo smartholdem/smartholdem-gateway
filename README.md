@@ -15,6 +15,7 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 - Alert service about new payment (+)
 - Payment statistics (~)
 - Integration with others BlockChain platforms (~)
+- BIP39 (+)
 - BIP44 Addresses (~)
 - BIP32
 - Invoices
@@ -23,7 +24,8 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 
 ## Requirements
 
-nodejs 8.x+
+- NodeJs 8.x+
+- SmartHoldem Node-A (optional) https://github.com/smartholdem/smartholdem-node-a
 
 ## Install
 
@@ -76,21 +78,21 @@ As daemon background process:
 sh restart.sh
 ```
 
-## Stop process
-
-```shell
-sh stop.sh
-```
-
 As debug console:
 
 ```shell
 npm start
 ```
 
+## Stop process
+
+```shell
+sh stop.sh
+```
+
 ## API
 
-### Get Address
+### Get STH Address
 
 A new address will be created if not found in the database.
 
@@ -112,10 +114,20 @@ return address json
 GET http://localhost:3000/api/validate/SWE5yaoYZbKKn6n6SXBur3gceetUJTR1yk
 ```
 
-return true/false json
+### Gen New STH Address BIP39
+
+BIP39 Addresses are not saved to the database.
+
+```shell
+GET http://localhost:3000/api/getnewaddress/bip39
+```
+
+return json
 
 ```json
 {
-  "valid": true
+  "address": "SWkELwTqgUrfQ81DfKRbk6q7UXYrvzZgQb",
+  "passphrase": "thought love copper tag image trigger swamp warm flee crunch input direct",
+  "pubkey": "02c61c9c01ca0852690c793989b99c084b82a6287ece6045c1b64ee4a7d4daac0d"
 }
 ```
