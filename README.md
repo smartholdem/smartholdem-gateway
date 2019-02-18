@@ -144,7 +144,7 @@ Backup saved to /backup/backupjson.log.gz
 
 for more examples see tests/test-backup.js
 
-### Send STH to address
+### Send STH to address from Master-Address
 
 Send STH from Master-Address
 
@@ -165,3 +165,23 @@ for more examples see tests/test-sendtoaddress.js
 }
 ```
 
+### SendFrom
+
+Send STH from custom address
+
+```shell
+POST http://localhost:3000/api/sendfrom
+-H "accept: application/json"
+-H "appkey: YourAppKey"
+-d "{'passphrase':'<AddressPassPhrase>','recipient': '<RecipientAddress>', 'amount': 1.00}"
+```
+
+return json result
+
+```json
+{
+    success: true,
+    transactionIds:
+        ['1ac9f2b8527a8076b4d81d71f0706e045d3e50a7be97fa4a41d729fd48a54831']
+}
+```
