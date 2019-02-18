@@ -37,12 +37,11 @@ function init() {
         workerBlock = jsonFile.readFileSync('./cache/blocks.json').workerBlock;
         util.log("WorkerHeight|" + workerBlock + "|" + moment().toISOString() + "\r\n");
     }
-    console.log('GateWay Init');
+    console.log('GateWay Init on Port:', appConfig.app.port);
     console.log('Start Block', workerBlock);
     console.log('Start Scheduler');
     scheduler.scheduleJob("*/40 * * * * *", () => {
-        shWay.getBlocks(workerBlock).then(function () {
-        });
+        shWay.getBlocks(workerBlock);
     });
 }
 
@@ -68,13 +67,12 @@ class SHWAY {
     }
 
     async getAddress(account) {
-        console.log(account);
         try {
             let value = await db.get('0x' + account);
             return (value);
         } catch (err) {
-            console.log('add new address');
             let newAddress = await this.getNewAddressBySalt(account);
+            await util.log("newaddress|" + newAddress + "|" + account + "\r\n");
             return (newAddress);
         }
     }
@@ -166,6 +164,33 @@ class SHWAY {
         });
     }
 
+    async getNewAddressBIP39() {
+        let MNEMONIC = bip39.generateMnemonic();
+        let PUB_KEY = sth.crypto.getKeys(MNEMONIC).publicKey;
+        let ADDR = sth.crypto.getAddress(PUB_KEY);
+        return ({
+            "address": ADDR,
+            "passphrase": MNEMONIC,
+            "pubkey": PUB_KEY
+        })
+
+    }
+
+    async getNewAddress(type) {
+        let NewAddress;
+        switch (type) {
+            case 'bip39':
+                NewAddress = await this.getNewAddressBIP39();
+                break;
+
+            default:
+                NewAddress = await this.getNewAddressBIP39();
+                break;
+        }
+
+        return (NewAddress);
+    }
+
 }
 
 async function sendCallbackTx(data) {
@@ -200,6 +225,13 @@ router.get('/getaddress/:account', function (req, res, next) {
     });
 });
 
+router.get('/getnewaddress/:type', function (req, res, next) {
+    shWay.getNewAddress(req.params["type"])
+        .then(function(newAddress){
+            res.json(newAddress);
+        })
+});
+
 router.get('/validate/:address', function (req, res, next) {
     shWay.validate(req.params["address"]).then(function (data) {
         res.json({"valid": data});
@@ -213,7 +245,7 @@ router.get('/dbget/:from/:to', function (req, res, next) {
     });
 });
 
-/** STH tx in gateway **/
+/** STH tx receipt in gateway **/
 router.post('/txinsuccess', function (req, res, next) {
     if (appConfig.app.appKey === req.headers['appkey']) {
         db.del('2x' + req.body.value.id);
