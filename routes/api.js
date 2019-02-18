@@ -368,8 +368,14 @@ router.post('/sendfrom', function (req, res, next) {
     }
 });
 
-router.get('/reports/txsout', function (req, res, next) {
-    shWay.reportsTxsOut().then(function (data) {
+router.get('/reports/txout', function (req, res, next) {
+    shWay.readDb(4, 5).then(function (data) {
+        res.json(data);
+    });
+});
+
+router.get('/reports/txinwait', function (req, res, next) {
+    shWay.readDb(2, 3).then(function (data) {
         res.json(data);
     });
 });
