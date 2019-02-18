@@ -9,6 +9,8 @@ const bip39 = require("bip39");
 const scheduler = require("node-schedule");
 const request = require("request");
 const moment = require("moment");
+const zlib = require('zlib');
+const through = require('through');
 const util = require("../modules/util");
 const appConfig = jsonFile.readFileSync("./config.json");
 const db = level('.db', {valueEncoding: 'json'});
@@ -27,7 +29,7 @@ function init() {
 
     if (!fs.existsSync('./cache/blocks.json')) {
         smartholdemApi.getBlockchainHeight((error, success, response) => {
-            console.log(response);
+            // console.log(response);
             util.log("BlockchainHeight|" + moment().toISOString() + "|" + response.height + "\r\n");
             jsonFile.writeFileSync('./cache/blocks.json', {
                 "workerBlock": response.height - appConfig.smartholdem.confirmations
@@ -227,7 +229,7 @@ router.get('/getaddress/:account', function (req, res, next) {
 
 router.get('/getnewaddress/:type', function (req, res, next) {
     shWay.getNewAddress(req.params["type"])
-        .then(function(newAddress){
+        .then(function (newAddress) {
             res.json(newAddress);
         })
 });
@@ -261,6 +263,32 @@ router.post('/dbput', function (req, res, next) {
     if (appConfig.app.appKey === req.headers['appkey']) {
         db.put(req.body.key, req.body.value);
         res.json(true);
+    } else {
+        res.json(null);
+    }
+});
+
+router.post('/db/backup', function (req, res, next) {
+    if (appConfig.app.appKey === req.headers['appkey']) {
+        var backingup = false;
+        let backupFile = "./backup/backupjson.log.gz";
+        if (backingup) res.json('im already backing up');
+        // console.log('backup started!');
+        let t = Date.now();
+
+        // an example of backing up to a file.
+        db.createReadStream()
+            .pipe(through(function (obj) {
+                // depending on if you store binary data your serialization method could be msgpack.
+                this.queue(JSON.stringify(obj) + "\n");
+            }))
+            .pipe(zlib.createGzip())
+            .pipe(fs.createWriteStream(backupFile))
+            .on("close", function () {
+                backingup = false;
+                util.log(moment().toISOString() + ' backup complete. took ', Date.now() - t, 'ms');
+                res.json({"ms": Date.now() - t, "success": true});
+            })
     } else {
         res.json(null);
     }

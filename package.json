@@ -27,6 +27,8 @@
     "morgan": "~1.9.0",
     "node-schedule": "^1.3.1",
     "sthjs": "^0.2.3",
-    "sthjs-wrapper": "git+https://github.com/smartholdem/sthjs-wrapper.git"
+    "sthjs-wrapper": "git+https://github.com/smartholdem/sthjs-wrapper.git",
+    "through": "^2.3.8",
+    "zlib": "^1.0.5"
   }
 }
