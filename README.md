@@ -41,7 +41,7 @@ nano config.json
 ```
 
 
-```
+```js
 {
   "app": {
     "port": 3000, // Default App port
