@@ -37,6 +37,35 @@ npm install
 
 ```shell
 mv sample.config.json config.json
+nano config.json
+```
+
+
+```json
+{
+  "app": {
+    "port": 3000, // Default App port
+    "localhostOnly": false,
+    "appKey": "Your_Uniq_Any_Private_Random_Password",
+    "debug": false,
+    "backups": true
+  },
+  "smartholdem": {
+    "preferredNode": "127.0.0.1", // SmartHoldem Node IP-Address
+    "masterAddress": "", // Main STH-Address
+    "masterKey": "", // Main STH-Address Pass Phrase
+    "salt": "", // required to generate internal addresses
+    "consolidateOnMasterAddress": true,
+    "confirmations": 10,
+    "blocks": 6, // the number of processed blocks
+    "minAmount": 10
+  },
+  "callbacks": {
+    "sendCallback": false, // notify about incoming transactions external service
+    "password": "1234567890", // external service password
+    "alertTxUrl": "http://yourWebSite.com/newtx" // web service url
+  }
+}
 ```
 
 ## Run
