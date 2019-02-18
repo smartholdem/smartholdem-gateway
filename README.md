@@ -89,6 +89,13 @@ npm start
 sh stop.sh
 ```
 
+
+## View Logs
+
+```shell
+tail -f ./sth.log
+```
+
 ## API
 
 ### Get STH Address
