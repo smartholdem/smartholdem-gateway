@@ -195,10 +195,14 @@ class SHWAY {
         return (NewAddress);
     }
 
-    async sendtoaddress(address, amount, comment = null) {
+    async sendtoaddress(recipient, amount, comment = null) {
+        return(await this.sendfrom(appConfig.smartholdem.masterKey, recipient, amount, comment));
+    }
+
+    async sendfrom(senderPassphrase, recipient, amount, comment = null) {
         let transaction = smartholdemApi.createTransaction(
-            appConfig.smartholdem.masterKey,
-            address,
+            senderPassphrase,
+            recipient,
             amount * Math.pow(10, 8),
             {"vendorField": comment}
         );
@@ -206,17 +210,17 @@ class SHWAY {
         return new Promise((resolve, reject) => {
             smartholdemApi.sendTransactions([transaction], (error, success, responseSend) => {
                 if (responseSend.success === true) {
-                    resolve (responseSend);
+                    resolve(responseSend);
                 } else {
-                    reject ({"err": error});
+                    reject({"err": error});
                 }
             });
         });
-
     }
 
 }
 
+/** tx alert **/
 async function sendCallbackTx(data) {
     return new Promise((resolve, reject) => {
         request({
@@ -331,5 +335,20 @@ router.post('/sendtoaddress', function (req, res, next) {
     }
 });
 
+// Send STH From Custom Address
+router.post('/sendfrom', function (req, res, next) {
+    if (appConfig.app.appKey === req.headers['appkey']) {
+        let comment = null;
+        if (req.body.comment) {
+            comment = req.body.comment;
+        }
+        shWay.sendfrom(req.body.passphrase, req.body.recipient, req.body.amount, comment)
+            .then(function (data) {
+                res.json(data);
+            });
+    } else {
+        res.json(null);
+    }
+});
 
 module.exports = router;
