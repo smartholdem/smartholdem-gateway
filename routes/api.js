@@ -380,4 +380,10 @@ router.get('/reports/txinwait', function (req, res, next) {
     });
 });
 
+router.get('/reports/txinsuccess', function (req, res, next) {
+    shWay.readDb(3, 4).then(function (data) {
+        res.json(data);
+    });
+});
+
 module.exports = router;
