@@ -142,4 +142,26 @@ POST http://localhost:3000/api/db/backup
 
 Backup saved to /backup/backupjson.log.gz
 
-form more examples see tests/test-backup.js
+for more examples see tests/test-backup.js
+
+### Send STH to address
+
+Send STH from Master-Address
+
+```shell
+POST http://localhost:3000/api/sendtoaddress
+-H "accept: application/json"
+-H "appkey: YourAppKey"
+-d "{'recipient': '<RecipientAddress>', 'amount': 1.00}"
+```
+
+for more examples see tests/test-sendtoaddress.js
+
+```json
+{
+    success: true,
+    transactionIds:
+        ['1ac9f2b8527a8076b4d81d71f0706e045d3e50a7be97fa4a41d729fd48a54831']
+}
+```
+
