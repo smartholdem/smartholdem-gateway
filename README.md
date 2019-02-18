@@ -13,7 +13,7 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 - Sending payments (+)
 - Generate user addresses (+)
 - Alert service about new payment (+)
-- Payment statistics (~)
+- Payment statistics (+)
 - Integration with others BlockChain platforms (~)
 - BIP39 (+)
 - BIP44 (~)
@@ -184,3 +184,33 @@ return json result
         ['1ac9f2b8527a8076b4d81d71f0706e045d3e50a7be97fa4a41d729fd48a54831']
 }
 ```
+
+### Reports Tx Out
+
+Get a list of outgoing transactions
+
+```shell
+GET http://localhost:3000/api/reports/txout
+```
+
+return json
+
+### Reports Tx In Wait
+
+Get a list of pending incoming transactions
+
+```shell
+GET http://localhost:3000/api/reports/txinwait
+```
+
+return json
+
+### Reports Tx In Success
+
+Get a list of success incoming transactions
+
+```shell
+GET http://localhost:3000/api/reports/txinsuccess
+```
+
+return json
