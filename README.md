@@ -16,10 +16,9 @@ This application provides full interaction with SmartHoldem (STH) BlockChain wit
 - Payment statistics (~)
 - Integration with others BlockChain platforms (~)
 - BIP39 (+)
-- BIP44 Addresses (~)
-- BIP32
+- BIP44 (~)
+- BIP32 (~)
 - Invoices
-- Documentation (~)
 - Logs sth.log (+)
 
 ## Requirements
