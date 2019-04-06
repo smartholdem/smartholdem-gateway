@@ -42,7 +42,7 @@ function init() {
     console.log('GateWay Init on Port:', appConfig.app.port);
     console.log('Start Block', workerBlock);
     console.log('Start Scheduler');
-    scheduler.scheduleJob("*/40 * * * * *", () => {
+    scheduler.scheduleJob("*/8 * * * * *", () => {
         if (!appConfig.app.debug) {
             shWay.getBlocks(workerBlock);
         }
