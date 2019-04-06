@@ -44,9 +44,9 @@ function init() {
     console.log('Start Scheduler');
     // 5 блоков каждые 40 сек
     scheduler.scheduleJob("*/40 * * * * *", () => {
-        if (!appConfig.app.debug) {
+        //if (!appConfig.app.debug) {
             shWay.getBlocks(workerBlock);
-        }
+        //}
     });
 }
 
