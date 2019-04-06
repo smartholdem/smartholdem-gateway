@@ -42,7 +42,8 @@ function init() {
     console.log('GateWay Init on Port:', appConfig.app.port);
     console.log('Start Block', workerBlock);
     console.log('Start Scheduler');
-    scheduler.scheduleJob("*/8 * * * * *", () => {
+    // 5 блоков каждые 40 сек
+    scheduler.scheduleJob("*/40 * * * * *", () => {
         if (!appConfig.app.debug) {
             shWay.getBlocks(workerBlock);
         }
