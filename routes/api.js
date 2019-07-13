@@ -77,7 +77,7 @@ class SHWAY {
             return (value);
         } catch (err) {
             let newAddress = await this.getNewAddressBySalt(account);
-            await util.log("newaddress|" + newAddress + "|" + account + "\r\n");
+            await util.log("newaddress|" + newAddress.addr + "|" + account + "\r\n");
             return (newAddress);
         }
     }
@@ -178,7 +178,6 @@ class SHWAY {
             "passphrase": MNEMONIC,
             "pubkey": PUB_KEY
         })
-
     }
 
     async getNewAddress(type) {
