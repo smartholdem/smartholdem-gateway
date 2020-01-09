@@ -9,6 +9,7 @@ const bip39 = require("bip39");
 const scheduler = require("node-schedule");
 const request = require("request");
 const moment = require("moment");
+const axios = require("axios");
 const zlib = require('zlib');
 const through = require('through');
 const util = require("../modules/util");
@@ -22,11 +23,12 @@ const db = level('.db', {valueEncoding: 'json'});
 // 4x - txOut
 
 let workerBlock = 0;
+console.log('STH NODE', appConfig.smartholdem.preferredNode)
+
+smartholdemApi.setPreferredNode(appConfig.smartholdem.preferredNode); // default node
+smartholdemApi.init('main'); //main or dev
 
 function init() {
-    smartholdemApi.setPreferredNode(appConfig.smartholdem.preferredNode); // default node
-    smartholdemApi.init('main'); //main or dev
-
     if (!fs.existsSync('./cache/blocks.json')) {
         smartholdemApi.getBlockchainHeight((error, success, response) => {
             // console.log(response);
@@ -39,14 +41,13 @@ function init() {
         workerBlock = jsonFile.readFileSync('./cache/blocks.json').workerBlock;
         util.log("WorkerHeight|" + workerBlock + "|" + moment().toISOString() + "\r\n");
     }
+
     console.log('GateWay Init on Port:', appConfig.app.port);
     console.log('Start Block', workerBlock);
     console.log('Start Scheduler');
     // 5 блоков каждые 40 сек
-    scheduler.scheduleJob("*/40 * * * * *", () => {
-        //if (!appConfig.app.debug) {
-            shWay.getBlocks(workerBlock);
-        //}
+    scheduler.scheduleJob("*/7 * * * * *", async () => {
+        await shWay.getBlocks()
     });
 }
 
@@ -111,62 +112,57 @@ class SHWAY {
         }
     }
 
-    async getTxs(blockId) {
-        await smartholdemApi.getTransactionsList({
-            "blockId": blockId
-        }, (error, success, response) => {
-            if (response.success) {
-                for (let i = 0; i < response.transactions.length; i++) {
-                    if (response.transactions[i].type === 0 && response.transactions[i].amount >= (appConfig.smartholdem.minAmount * 10 ** 8)) {
-                        this.searchAddress(response.transactions[i].recipientId)
-                            .then(function (dataSearch) {
-                                if (dataSearch.found) {
-                                    let preparedTx = {
-                                        id: response.transactions[i].id,
-                                        recipientId: response.transactions[i].recipientId,
-                                        comment: response.transactions[i].vendorField,
-                                        account: dataSearch.account,
-                                        amount: response.transactions[i].amount, // 10 ** 8
-                                        timestamp: 1511269200 + response.transactions[i].timestamp
-                                    };
-
-                                    db.get('3x' + response.transactions[i].id, function (err, value) {
-                                        if (err) {
-                                            util.log("newtxin|" + (preparedTx.amount / 100000000) + "STH|" + preparedTx.account + "|" + preparedTx.recipientId + "|" + moment().toISOString() + "\r\n");
-                                            db.put('2x' + response.transactions[i].id, preparedTx);
-                                            if (appConfig.callbacks.sendCallback) {
-                                                sendCallbackTx(preparedTx)
-                                                    .then(function (callbackResult) {
-                                                        console.log(callbackResult);
-                                                    });
-                                            }
-                                        }
-                                    });
-                                }
-                            })
-                    }
-                }
-            }
-        });
+    async getTransations(blockId) {
+        let result = []
+        let response = await axios.get('http://' + appConfig.smartholdem.preferredNode + ':6100/api/transactions?blockId=' + blockId)
+        if (response.data) {
+            result = response.data.transactions
+        }
+        return result
     }
 
-    async getBlocks(offset) {
-        await smartholdemApi.getBlocks({
-            "limit": appConfig.smartholdem.blocks,
-            "offset": offset,
-            "orderBy": "height:asc"
-        }, (error, success, response) => {
+    async getTxs(blockId) {
+        let txs = await this.getTransations(blockId)
+        for (let i = 0; i < txs.length; i++) {
+            if (txs[i].type === 0 && txs[i].amount >= (appConfig.smartholdem.minAmount * 10 ** 8)) {
+                let dataSearch = await this.searchAddress(txs[i].recipientId)
+                if (dataSearch.found) {
+                    let preparedTx = {
+                        id: txs[i].id,
+                        recipientId: txs[i].recipientId,
+                        comment: txs[i].vendorField,
+                        account: dataSearch.account,
+                        amount: txs[i].amount, // 10 ** 8
+                        timestamp: 1511269200 + txs[i].timestamp
+                    };
 
-            for (let i = 0; i < response.blocks.length; i++) {
-                if (response.blocks[i].numberOfTransactions > 0) {
-                    this.getTxs(response.blocks[i].id);
+                    db.get('3x' + txs[i].id, function (err, value) {
+                        if (err) {
+                            util.log("newtxin|" + (preparedTx.amount / 100000000) + "STH|" + preparedTx.account + "|" + preparedTx.recipientId + "|" + moment().toISOString() + "\r\n");
+                            db.put('2x' + txs[i].id, preparedTx);
+                        }
+                    });
                 }
             }
+        }
+    }
 
-            workerBlock = workerBlock + response.blocks.length;
-            jsonFile.writeFile('./cache/blocks.json', {"workerBlock": workerBlock});
-            // console.log(offset + "/" + workerBlock + "/" + response.blocks.length);
-        });
+    async getBlocks() {
+        let response = await axios.get('http://' + appConfig.smartholdem.preferredNode + ':6100/api/blocks?height=' + workerBlock)
+        if (response.data) {
+            let blocks = response.data.blocks
+            if (blocks.length < 1) {
+                return
+            }
+            for (let i = 0; i < blocks.length; i++) {
+                if (blocks[i].numberOfTransactions > 0) {
+                    console.log(blocks[i].height, 'count txs', blocks[i].numberOfTransactions)
+                    await this.getTxs(blocks[i].id);
+                }
+            }
+            workerBlock++
+            await jsonFile.writeFile('./cache/blocks.json', {"workerBlock": workerBlock});
+        }
     }
 
     async getNewAddressBIP39() {
@@ -261,7 +257,6 @@ async function sendCallbackTx(data) {
 
 const shWay = new SHWAY();
 init();
-
 
 /* GET home page. */
 router.get('/getaddress/:account', function (req, res, next) {
@@ -382,6 +377,12 @@ router.get('/reports/txinwait', function (req, res, next) {
 
 router.get('/reports/txinsuccess', function (req, res, next) {
     shWay.readDb(3, 4).then(function (data) {
+        res.json(data);
+    });
+});
+
+router.get('/transactions/block/:id', function (req, res, next) {
+    shWay.getTransations(req.params["id"]).then(function (data) {
         res.json(data);
     });
 });
