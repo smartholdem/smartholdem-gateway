@@ -124,7 +124,7 @@ class SHWAY {
     async getTxs(blockId) {
         let txs = await this.getTransations(blockId)
         for (let i = 0; i < txs.length; i++) {
-            if (txs[i].type === 0 && txs[i].amount >= (appConfig.smartholdem.minAmount * 10 ** 8)) {
+            if (txs[i].type === 0 && txs[i].amount >= (appConfig.smartholdem.minDeposit * 10 ** 8)) {
                 let dataSearch = await this.searchAddress(txs[i].recipientId)
                 if (dataSearch.found) {
                     let preparedTx = {
@@ -212,15 +212,14 @@ class SHWAY {
                         recipient: recipient,
                         timestamp: Math.floor(Date.now() / 1000)
                     };
-
                     this.dbput('4x' + txOutData.txId, txOutData);
-
                     resolve(responseSend);
                 } else {
                     reject({"err": error});
                 }
             });
         });
+
     }
 
     async dbput(key, value) {
